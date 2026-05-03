@@ -38,27 +38,27 @@ Sistema web de controle pessoal de finanças para registro e acompanhamento de e
 
 | Camada | Tecnologia |
 |---|---|
-| Framework | Next.js 16 (App Router) |
-| UI | React 19 |
+| Framework | Next.js 16.2.4 (App Router) |
+| UI | React 19.2.4 |
 | Linguagem | TypeScript 5 (strict mode) |
 | Estilização | Tailwind CSS 4 |
 | Persistência | `localStorage` (browser) |
-| Testes | Jest 30 + Testing Library |
+| Testes | Jest 30.3 + Testing Library 16.3 |
 | Linting | ESLint 9 |
 
 ---
 
 ## Instalação
 
-**Pré-requisitos:** Node.js 18 ou superior.
+**Pré-requisitos:** Node.js 20 ou superior (testado com v24.x). Recomenda-se usar um gerenciador de versões como [nvm](https://github.com/nvm-sh/nvm).
 
 ```bash
 # Clone o repositório
 git clone <url-do-repositorio>
 cd controle-financeiro
 
-# Instale as dependências
-npm install
+# Instale as dependências com versões fixadas pelo lockfile
+npm ci
 ```
 
 Não há variáveis de ambiente necessárias. O projeto não consome nenhuma API externa.
@@ -114,27 +114,47 @@ npm run test:coverage
 
 A cobertura é coletada sobre `src/` exceto arquivos de entrada (`layout.tsx`, `page.tsx`, `App.tsx`).
 
+### Rodar um teste específico
+
+```bash
+# Por nome (substring do describe ou it)
+npx jest -t "deve chamar onSave"
+
+# Por arquivo
+npx jest src/__tests__/hooks/useTransactions.test.ts
+```
+
 ### Estrutura dos testes
+
+Cada camada tem escopo e responsabilidade distintos:
+
+| Camada | O que testa |
+|---|---|
+| `lib/` | Funções puras: validação de campos, formatação de moeda/data, agrupamento e ordenação por mês |
+| `hooks/` | Ciclo de vida do estado: CRUD completo, persistência no `localStorage`, recálculo de saldos |
+| `components/ui/` | Comportamento dos inputs atômicos: máscara de data, formatação de moeda, limite de caracteres, opções do select |
+| `components/` | Modais: renderização condicional de campos, disparo correto dos callbacks de ação |
+| `views/` | Telas completas: fluxo de formulário (criação e edição), filtro de ano no dashboard, navegação entre estados |
 
 ```
 src/__tests__/
 ├── lib/
-│   ├── validators.test.ts       — validação de título, data, valor e descrição
-│   ├── formatters.test.ts       — formatação de moeda e data
-│   └── groupByMonth.test.ts     — agrupamento e ordenação por mês/categoria
+│   ├── validators.test.ts       — validateTitle, validateDate, validateAmount, validateDescription
+│   ├── formatters.test.ts       — formatCurrency (BRL), formatDate (ISO → dd/mm/aaaa)
+│   └── groupByMonth.test.ts     — agrupamento por mês, ordenação desc, filtragem por ano
 ├── hooks/
-│   └── useTransactions.test.ts  — CRUD completo + cenários de ID inexistente
+│   └── useTransactions.test.ts  — add/update/remove, persistência, IDs inexistentes
 ├── components/
 │   ├── ui/
-│   │   ├── CharCounter.test.tsx
-│   │   ├── CurrencyInput.test.tsx
-│   │   ├── DateInput.test.tsx
-│   │   └── CategorySelect.test.tsx
-│   ├── DeleteConfirmModal.test.tsx
-│   └── TransactionModal.test.tsx
+│   │   ├── CharCounter.test.tsx       — cor vermelha ao atingir limite
+│   │   ├── CurrencyInput.test.tsx     — máscara BRL, bloqueio de valor acima do máximo
+│   │   ├── DateInput.test.tsx         — máscara dd/mm/aaaa
+│   │   └── CategorySelect.test.tsx    — 10 categorias + placeholder
+│   ├── DeleteConfirmModal.test.tsx    — confirmação, cancelamento, clique no backdrop
+│   └── TransactionModal.test.tsx      — entrada vs saída, categoria, descrição opcional
 └── views/
-    ├── Dashboard.test.tsx
-    └── TransactionForm.test.tsx
+    ├── Dashboard.test.tsx             — estado vazio, filtro de ano, clique em transação
+    └── TransactionForm.test.tsx       — criação, validação inline, modo edição
 ```
 
 **141 casos de teste** distribuídos em 12 suítes. O `localStorage` é mockado em memória para cada teste via `jest.setup.ts`, garantindo isolamento total.
@@ -254,7 +274,7 @@ Aplicáveis exclusivamente a lançamentos do tipo **saída**:
 
 ## Uso de IA no desenvolvimento
 
-Este projeto foi desenvolvido com assistência do **Claude (Anthropic)** via Claude Code. A IA foi utilizada em todas as fases:
+Este projeto foi desenvolvido com assistência do **Claude Sonnet 4.5** (Anthropic) via Claude Code. A IA foi utilizada em todas as fases:
 
 - **Scaffolding inicial**: estrutura de pastas, tipos TypeScript, componentes base
 - **Lógica de negócio**: implementação das funções de agrupamento mensal, validadores e formatadores
