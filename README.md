@@ -1,36 +1,288 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Controle Financeiro
 
-## Getting Started
+Sistema web de controle pessoal de finanças para registro e acompanhamento de entradas e saídas. Funciona inteiramente no navegador — sem backend, sem banco de dados, sem autenticação.
 
-First, run the development server:
+---
+
+## Sumário
+
+- [Funcionalidades](#funcionalidades)
+- [Stack](#stack)
+- [Instalação](#instalação)
+- [Execução](#execução)
+- [Testes](#testes)
+- [Arquitetura](#arquitetura)
+- [Persistência de dados](#persistência-de-dados)
+- [Categorias disponíveis](#categorias-disponíveis)
+- [Limitações conhecidas](#limitações-conhecidas)
+- [Uso de IA no desenvolvimento](#uso-de-ia-no-desenvolvimento)
+- [Próximos passos](#próximos-passos)
+
+---
+
+## Funcionalidades
+
+- **Dashboard** com saldo acumulado global e resumo mensal por ano
+- **Registro de entradas** (receitas) com título, descrição, data e valor
+- **Registro de saídas** (despesas) com categoria obrigatória
+- **Edição e exclusão** de lançamentos com confirmação
+- **Filtro por ano** para navegar entre períodos
+- **Agrupamento por mês** com detalhamento por categoria
+- **Visualização em modal** com dados completos do lançamento
+- **Validação inline** em todos os campos de formulário
+- **Persistência local** automática via `localStorage`
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19 |
+| Linguagem | TypeScript 5 (strict mode) |
+| Estilização | Tailwind CSS 4 |
+| Persistência | `localStorage` (browser) |
+| Testes | Jest 30 + Testing Library |
+| Linting | ESLint 9 |
+
+---
+
+## Instalação
+
+**Pré-requisitos:** Node.js 18 ou superior.
+
+```bash
+# Clone o repositório
+git clone <url-do-repositorio>
+cd controle-financeiro
+
+# Instale as dependências
+npm install
+```
+
+Não há variáveis de ambiente necessárias. O projeto não consome nenhuma API externa.
+
+---
+
+## Execução
+
+### Desenvolvimento
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000). O servidor recarrega automaticamente a cada alteração.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build de produção
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+### Lint
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testes
 
-## Deploy on Vercel
+A suíte cobre utilitários, hook de estado, componentes de UI e telas completas.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Rodar todos os testes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test
+```
+
+### Modo watch (re-executa ao salvar)
+
+```bash
+npm run test:watch
+```
+
+### Relatório de cobertura
+
+```bash
+npm run test:coverage
+```
+
+A cobertura é coletada sobre `src/` exceto arquivos de entrada (`layout.tsx`, `page.tsx`, `App.tsx`).
+
+### Estrutura dos testes
+
+```
+src/__tests__/
+├── lib/
+│   ├── validators.test.ts       — validação de título, data, valor e descrição
+│   ├── formatters.test.ts       — formatação de moeda e data
+│   └── groupByMonth.test.ts     — agrupamento e ordenação por mês/categoria
+├── hooks/
+│   └── useTransactions.test.ts  — CRUD completo + cenários de ID inexistente
+├── components/
+│   ├── ui/
+│   │   ├── CharCounter.test.tsx
+│   │   ├── CurrencyInput.test.tsx
+│   │   ├── DateInput.test.tsx
+│   │   └── CategorySelect.test.tsx
+│   ├── DeleteConfirmModal.test.tsx
+│   └── TransactionModal.test.tsx
+└── views/
+    ├── Dashboard.test.tsx
+    └── TransactionForm.test.tsx
+```
+
+**141 casos de teste** distribuídos em 12 suítes. O `localStorage` é mockado em memória para cada teste via `jest.setup.ts`, garantindo isolamento total.
+
+---
+
+## Arquitetura
+
+O projeto segue a estrutura padrão do Next.js App Router com separação clara entre camadas:
+
+```
+src/
+├── app/
+│   ├── App.tsx          — orquestrador de estado e navegação entre telas
+│   ├── layout.tsx       — layout raiz com fonte e metadados
+│   └── page.tsx         — ponto de entrada (renderiza App)
+├── components/
+│   ├── ui/              — componentes atômicos reutilizáveis
+│   │   ├── CurrencyInput.tsx    — input formatado em BRL
+│   │   ├── DateInput.tsx        — input com máscara dd/mm/aaaa
+│   │   ├── CharCounter.tsx      — contador de caracteres com limite visual
+│   │   └── CategorySelect.tsx   — select com as 10 categorias
+│   ├── DeleteConfirmModal.tsx   — modal de confirmação de exclusão
+│   ├── TransactionModal.tsx     — modal de visualização de lançamento
+│   ├── GlobalBalance.tsx        — card de saldo acumulado global
+│   ├── MonthSummaryRow.tsx      — linha colapsável de resumo mensal
+│   ├── YearFilter.tsx           — seletor de ano
+│   └── EmptyState.tsx           — tela inicial sem dados
+├── views/
+│   ├── Dashboard.tsx            — tela principal com lista de meses
+│   └── TransactionForm.tsx      — formulário de criação e edição
+├── hooks/
+│   └── useTransactions.ts       — estado global + operações CRUD + sync com localStorage
+├── lib/
+│   ├── validators.ts            — funções de validação puras
+│   ├── formatters.ts            — formatação de moeda e data
+│   ├── groupByMonth.ts          — agrupamento e ordenação de transações
+│   └── cn.ts                    — utilitário clsx + tailwind-merge
+└── types/
+    └── index.ts                 — tipos Transaction, EntryType, Category
+```
+
+### Fluxo de dados
+
+```
+App.tsx (estado + navegação)
+  ├── useTransactions()  ←→  localStorage
+  ├── Dashboard          ← recebe transactions[] via props
+  └── TransactionForm    ← recebe type + editingTransaction via props
+```
+
+`App.tsx` é o único componente com acesso ao hook. As views e componentes filhos são stateless em relação ao domínio — recebem dados e callbacks via props.
+
+---
+
+## Persistência de dados
+
+Todos os lançamentos são armazenados em `localStorage` sob a chave `fin_transactions` como array JSON:
+
+```json
+[
+  {
+    "id": "1746123456789-abc1234",
+    "type": "entrada",
+    "title": "Salário",
+    "description": "Referente ao mês de maio",
+    "date": "2025-05-05",
+    "amount": 5000,
+    "category": null
+  },
+  {
+    "id": "1746123456790-def5678",
+    "type": "saida",
+    "title": "Aluguel",
+    "date": "2025-05-10",
+    "amount": 1500,
+    "category": "Moradia"
+  }
+]
+```
+
+**Datas** são armazenadas em formato ISO (`yyyy-mm-dd`) e convertidas para `dd/mm/aaaa` apenas na exibição. **Valores** são números decimais (ex: `1500.00`), não strings.
+
+---
+
+## Categorias disponíveis
+
+Aplicáveis exclusivamente a lançamentos do tipo **saída**:
+
+- Alimentação
+- Compras Pessoais
+- Contas de Consumo
+- Educação e Ensino
+- Investimentos
+- Lazer e Hobbies
+- Moradia
+- Outros
+- Saúde
+- Transporte
+
+---
+
+## Limitações conhecidas
+
+| Limitação | Detalhe |
+|---|---|
+| **Sem sincronização** | Dados ficam apenas no navegador atual. Trocar de dispositivo ou limpar o cache apaga tudo. |
+| **Sem autenticação** | Qualquer pessoa com acesso ao navegador vê e edita os dados. |
+| **Sem paginação** | Todos os lançamentos são carregados em memória de uma vez. Volumes muito grandes podem degradar a performance. |
+| **Sem exportação** | Não há como exportar os dados para CSV, PDF ou outro formato. |
+| **Sem multi-moeda** | Apenas Real Brasileiro (BRL). |
+| **Sem recorrência** | Lançamentos recorrentes precisam ser adicionados manualmente a cada período. |
+| **Sem metas ou orçamento** | A aplicação registra e exibe, mas não compara com valores planejados. |
+| **ID inexistente no formulário** | Se `editingTransaction` não for encontrado pelo pai, o formulário abre em modo de criação sem feedback de erro ao usuário. |
+
+---
+
+## Uso de IA no desenvolvimento
+
+Este projeto foi desenvolvido com assistência do **Claude (Anthropic)** via Claude Code. A IA foi utilizada em todas as fases:
+
+- **Scaffolding inicial**: estrutura de pastas, tipos TypeScript, componentes base
+- **Lógica de negócio**: implementação das funções de agrupamento mensal, validadores e formatadores
+- **Componentes de UI**: `CurrencyInput`, `DateInput`, modais, dashboard
+- **Hook de estado**: `useTransactions` com persistência em `localStorage`
+- **Suíte de testes**: configuração do Jest + Testing Library, escrita de 141 casos de teste cobrindo utilitários, hook e componentes
+
+Todo o código gerado foi revisado e aprovado pelo desenvolvedor. A responsabilidade pela arquitetura, decisões de produto e qualidade final é do autor do projeto.
+
+---
+
+## Próximos passos
+
+### Funcionalidade
+- [ ] Exportação de dados (CSV / JSON)
+- [ ] Lançamentos recorrentes (diário, semanal, mensal)
+- [ ] Metas e orçamento por categoria
+- [ ] Filtro por categoria e tipo na listagem
+- [ ] Busca por título ou descrição
+
+### Infraestrutura
+- [ ] Migração da persistência para IndexedDB (maior capacidade)
+- [ ] PWA com suporte offline e instalação no dispositivo
+- [ ] Sincronização opcional via backend (Supabase ou similar)
+- [ ] Autenticação para isolamento de dados por usuário
+
+### Qualidade
+- [ ] Testes E2E com Playwright cobrindo fluxos completos
+- [ ] Snapshots para componentes puramente visuais (`EmptyState`, `GlobalBalance`)
+- [ ] Tratamento explícito de ID inexistente no formulário de edição
+- [ ] Acessibilidade: auditoria completa com axe-core
