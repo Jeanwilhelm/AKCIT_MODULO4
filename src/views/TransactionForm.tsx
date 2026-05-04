@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Transaction, EntryType, Category } from '@/types';
 import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { DateInput } from '@/components/ui/DateInput';
@@ -33,22 +33,12 @@ export function TransactionForm({ type, editingTransaction, onSave, onCancel }: 
   const isEditing = !!editingTransaction;
   const typeLabel = type === 'entrada' ? 'Entrada' : 'Saída';
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState('');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState<Category | ''>('');
+  const [title, setTitle] = useState(() => editingTransaction?.title ?? '');
+  const [description, setDescription] = useState(() => editingTransaction?.description ?? '');
+  const [date, setDate] = useState(() => editingTransaction ? isoToDisplay(editingTransaction.date) : '');
+  const [amount, setAmount] = useState(() => editingTransaction ? amountToDisplay(editingTransaction.amount) : '');
+  const [category, setCategory] = useState<Category | ''>(() => editingTransaction?.category ?? '');
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    if (editingTransaction) {
-      setTitle(editingTransaction.title);
-      setDescription(editingTransaction.description ?? '');
-      setDate(isoToDisplay(editingTransaction.date));
-      setAmount(amountToDisplay(editingTransaction.amount));
-      setCategory(editingTransaction.category ?? '');
-    }
-  }, [editingTransaction]);
 
   function validate(): Record<string, string> {
     const errs: Record<string, string> = {};

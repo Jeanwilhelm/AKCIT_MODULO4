@@ -22,10 +22,13 @@ export function useTransactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loaded, setLoaded] = useState(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
+    // Must run after hydration to avoid SSR/client mismatch with localStorage
     setTransactions(loadFromStorage());
     setLoaded(true);
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const add = useCallback((transaction: Transaction) => {
     setTransactions((prev) => {
