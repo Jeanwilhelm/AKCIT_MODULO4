@@ -274,15 +274,15 @@ Aplicáveis exclusivamente a lançamentos do tipo **saída**:
 
 ## Uso de IA no desenvolvimento
 
-Este projeto foi desenvolvido com assistência do **Claude Sonnet 4.5** (Anthropic) via Claude Code. A IA foi utilizada em todas as fases:
+Este projeto se originou de prompts gerados via Claude para desenvolvimento com SDD e foi desenvolvido com assistência do **Claude Sonnet 4.5** (Anthropic) via Claude Code. A IA foi utilizada em todas as fases do projeto:
 
 - **Scaffolding inicial**: estrutura de pastas, tipos TypeScript, componentes base
-- **Lógica de negócio**: implementação das funções de agrupamento mensal, validadores e formatadores
+- **Lógica de negócio**: implementação das funções de agrupamento mensal, validadores e formatadores de campos
 - **Componentes de UI**: `CurrencyInput`, `DateInput`, modais, dashboard
 - **Hook de estado**: `useTransactions` com persistência em `localStorage`
 - **Suíte de testes**: configuração do Jest + Testing Library, escrita de 141 casos de teste cobrindo utilitários, hook e componentes
 
-Todo o código gerado foi revisado e aprovado pelo desenvolvedor. A responsabilidade pela arquitetura, decisões de produto e qualidade final é do autor do projeto.
+Todo o código gerado foi revisado e aprovado pelo desenvolvedor. A responsabilidade pela arquitetura, decisões de produto e qualidade final foi do autor do projeto.
 
 ---
 
@@ -294,15 +294,9 @@ Todo o código gerado foi revisado e aprovado pelo desenvolvedor. A responsabili
 - [ ] Metas e orçamento por categoria
 - [ ] Filtro por categoria e tipo na listagem
 - [ ] Busca por título ou descrição
+- [ ] Melhorias no Dashboard com gráficos mais visuais de consumo
+- [ ] Melhorias no Dashboard com gráficos comparativos entre meses e anos (prevendo uso da aplicação em longo prazo)
 
 ### Infraestrutura
 - [ ] Migração da persistência para IndexedDB (maior capacidade)
-- [ ] PWA com suporte offline e instalação no dispositivo
-- [ ] Sincronização opcional via backend (Supabase ou similar)
 - [ ] Autenticação para isolamento de dados por usuário
-
-### Qualidade
-- [ ] Testes E2E com Playwright cobrindo fluxos completos
-- [ ] Snapshots para componentes puramente visuais (`EmptyState`, `GlobalBalance`)
-- [ ] Tratamento explícito de ID inexistente no formulário de edição
-- [ ] Acessibilidade: auditoria completa com axe-core
